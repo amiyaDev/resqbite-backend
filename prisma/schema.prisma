@@ -1,22 +1,75 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  name  String
+  email String  @unique
+  phone String?
+  role  Role    @default(BUYER)
+
+  listings Listing[]
+  orders   Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Listing {
-  id          String   @id @default(uuid())
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
   title       String
   description String?
   price       Float
   quantity    Int
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  expiryTime  DateTime
+
+  seller   User   @relation(fields: [sellerId], references: [id])
+  sellerId String @db.ObjectId
+
+  orders Order[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("listings")
+}
+
+model Order {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  buyer   User   @relation(fields: [buyerId], references: [id])
+  buyerId String @db.ObjectId
+
+  listing   Listing @relation(fields: [listingId], references: [id])
+  listingId String  @db.ObjectId
+
+  quantity   Int
+  totalPrice Float
+
+  status OrderStatus @default(PENDING)
+  otp    String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  BUYER
+  SELLER
+  NGO
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PICKED_UP
+  CANCELLED
+  EXPIRED
 }
