@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output = "../src/generated/prisma"
 }
 
 datasource db {
@@ -8,13 +8,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ------------User model -------------- 
 model User {
   id    String  @id @default(auto()) @map("_id") @db.ObjectId
   name  String
   email String  @unique
   phone String?
   role  Role    @default(BUYER)
-
+  password String
   listings Listing[]
   orders   Order[]
 
@@ -64,6 +65,7 @@ enum Role {
   BUYER
   SELLER
   NGO
+  ADMIN
 }
 
 enum OrderStatus {
@@ -73,3 +75,5 @@ enum OrderStatus {
   CANCELLED
   EXPIRED
 }
+
+
